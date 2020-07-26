@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/gorilla/schema"
 
 	"github.com/gorilla/mux"
 )
@@ -77,8 +78,11 @@ func listen(path string, rtr *mux.Router, servers []server, fn func(srv server, 
 			return
 		}
 
+		formDecoder := schema.NewDecoder()
+		formDecoder.SetAliasTag("json")
+
 		msg := Message{}
-		if err := json.Unmarshal(body, &msg); len(body) != 0 && err != nil {
+		if err := formDecoder.Decode(&msg, r.PostForm); len(body) != 0 && err != nil {
 			log.Println("unmarshal fail:", err)
 			http.Error(w, "unmarshal fail", http.StatusInternalServerError)
 			return
