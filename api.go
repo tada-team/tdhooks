@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -54,34 +55,42 @@ type Message struct {
 
 func listen(path string, rtr *mux.Router, servers []server, fn func(srv server, msg Message) error) {
 	rtr.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.Method, r.URL.RawPath)
 		if r.Method != http.MethodPost {
+			log.Println("method not allowed")
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		srv, ok := serverByKey(servers, r.Header.Get("key"))
+		key := r.Header.Get("key")
+		srv, ok := serverByKey(servers, key)
 		if !ok {
+			log.Println("server not found:", key)
 			http.Error(w, "server not found", http.StatusForbidden)
 			return
 		}
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
+			log.Println("read body fail:", err)
 			http.Error(w, "read body fail", http.StatusInternalServerError)
 			return
 		}
 
 		msg := Message{}
 		if err := json.Unmarshal(body, &msg); len(body) != 0 && err != nil {
+			log.Println("unmarshal fail:", err)
 			http.Error(w, "unmarshal fail", http.StatusInternalServerError)
 			return
 		}
 
 		if err := fn(srv, msg); err != nil {
-			http.Error(w, "read body fail", http.StatusInternalServerError)
+			log.Println("callback fail:", err)
+			http.Error(w, "callback fail", http.StatusInternalServerError)
 			return
 		}
 
+		log.Println("got message:", msg.Text)
 		io.WriteString(w, "got it")
 	})
 }

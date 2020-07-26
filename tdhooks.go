@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 
@@ -18,7 +18,7 @@ func main() {
 
 	b, err := ioutil.ReadFile(*configPathPtr)
 	if err != nil {
-		fmt.Println("config error:", err)
+		log.Println("config error:", err)
 		os.Exit(1)
 	}
 
@@ -29,7 +29,7 @@ func main() {
 	}
 
 	if err := yaml.Unmarshal(b, &config); err != nil {
-		fmt.Println("config error:", err)
+		log.Println("config error:", err)
 		os.Exit(1)
 	}
 
@@ -48,9 +48,9 @@ func main() {
 		server.Addr = "127.0.0.1:8042"
 	}
 
-	fmt.Printf("start tdhooks at: http://%s", server.Addr)
+	log.Printf("start tdhooks at: http://%s", server.Addr)
 	if err := server.ListenAndServe(); err != nil {
-		fmt.Println("start server fail:", err)
+		log.Println("start server fail:", err)
 		os.Exit(1)
 	}
 }

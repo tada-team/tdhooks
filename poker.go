@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"regexp"
 
@@ -35,6 +36,7 @@ func (cfg pokerConfig) listen(rtr *mux.Router, servers []server) {
 	listen(cfg.Path, rtr, servers, func(srv server, msg Message) error {
 		v, ok := states[msg.Chat]
 		if stopRegex.MatchString(msg.Text) {
+			log.Println("poker: stop")
 			avg := 0
 			n := len(v.votes)
 			if n > 0 {
@@ -48,6 +50,7 @@ func (cfg pokerConfig) listen(rtr *mux.Router, servers []server) {
 				return err
 			}
 		} else if vote := forceInt64(msg.Text); vote > 0 {
+			log.Println("poker: vote:", vote, "from:", msg.Sender)
 			if !ok {
 				states[msg.Chat] = state{votes: []int{int(vote)}}
 			} else {
@@ -56,6 +59,8 @@ func (cfg pokerConfig) listen(rtr *mux.Router, servers []server) {
 			if err := srv.SendMessage(fmt.Sprintf(cfg.GotMessage, vote)); err != nil {
 				return err
 			}
+		} else {
+			log.Println("poker: skip message")
 		}
 		return nil
 	})
