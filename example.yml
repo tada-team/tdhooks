@@ -1,0 +1,8 @@
+listen: 127.0.0.1:8787
+servers:
+  - host: web.tada.team
+    key: je8fher9fherflnlsdfhsdfkjh
+    poker: true
+poker:
+  path: "/poker"
+  voteMessage: "Голосов: %d, средний балл: %d"
