@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -71,13 +70,6 @@ func listen(path string, rtr *mux.Router, servers []server, fn func(srv server, 
 			return
 		}
 
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			log.Println("read body fail:", err)
-			http.Error(w, "read body fail", http.StatusInternalServerError)
-			return
-		}
-
 		if err := r.ParseForm(); err != nil {
 			log.Println("parse form fail:", err)
 		}
@@ -93,7 +85,7 @@ func listen(path string, rtr *mux.Router, servers []server, fn func(srv server, 
 		formDecoder.SetAliasTag("json")
 
 		msg := Message{}
-		if err := formDecoder.Decode(&msg, r.PostForm); len(body) != 0 && err != nil {
+		if err := formDecoder.Decode(&msg, r.PostForm); err != nil {
 			log.Println("unmarshal fail:", err)
 			http.Error(w, "unmarshal fail", http.StatusInternalServerError)
 			return
