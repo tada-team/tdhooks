@@ -78,6 +78,17 @@ func listen(path string, rtr *mux.Router, servers []server, fn func(srv server, 
 			return
 		}
 
+		if err := r.ParseForm(); err != nil {
+			log.Println("parse form fail:", err)
+		}
+
+		if len(r.PostForm) == 0 {
+			err := r.ParseMultipartForm(32 << 20) // maxMemory 32MB
+			if err != nil {
+				log.Println("parse multipart form fail:", err)
+			}
+		}
+
 		formDecoder := schema.NewDecoder()
 		formDecoder.SetAliasTag("json")
 
